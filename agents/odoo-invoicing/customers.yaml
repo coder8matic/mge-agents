@@ -1,0 +1,18 @@
+# Mesečno fakturiranje: vir resnice za agenta.
+# Imena strank in izdelkov morajo biti TOČNO taka kot v Odoo.
+# {period} agent zamenja z mesecem in letom (npr. "oktober 2026").
+
+customers:
+  - partner: "Primer d.o.o."
+    items:
+      - product: "Mesečno vzdrževanje"
+        quantity: 1
+        price_unit: 450.00
+        description: "Vzdrževanje sistema za {period}"
+
+  - partner: "Druga stranka d.o.o."
+    items:
+      - product: "Svetovanje"
+        quantity: 8
+        price_unit: 75.00
+        description: "Svetovalne ure za {period}"

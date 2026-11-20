@@ -1,0 +1,13 @@
+name: odoo-invoicing
+company: suncontract
+owner: matic
+models:
+  execute: claude-sonnet-5-5
+trigger:
+  schedule: "0 7 1 * *"        # 1. v mesecu ob 7:00 (Europe/Ljubljana)
+limits:
+  max_turns: 60
+  max_runtime_min: 30
+task: >
+  Pripravi osnutke izhodnih računov za pretekli mesec po pravilih v CLAUDE.md
+  in podatkih v customers.yaml. Ničesar ne knjiži.
