@@ -1,5 +1,5 @@
-"""Odoo dostop controllerja: samo iskanje agentovih osnutkov in knjiženje PO odobritvi.
-Uporablja ODOO_APPROVER_API_KEY (agent tega ključa nikoli ne vidi)."""
+"""Controller's Odoo access: only finding the agent's drafts and posting AFTER approval.
+Uses ODOO_APPROVER_API_KEY (the agent never sees this key)."""
 import os
 
 import httpx
@@ -29,7 +29,7 @@ def call(model: str, method: str, **params):
 
 
 def agent_drafts_since(since_utc: str) -> list[dict]:
-    """Osnutki izhodnih računov, ki jih je agent ustvaril od 'since_utc' (YYYY-MM-DD HH:MM:SS)."""
+    """Draft customer invoices created by the agent since 'since_utc' (YYYY-MM-DD HH:MM:SS)."""
     return call("account.move", "search_read", domain=[
         ["move_type", "=", "out_invoice"],
         ["state", "=", "draft"],
@@ -39,14 +39,14 @@ def agent_drafts_since(since_utc: str) -> list[dict]:
 
 
 def post_invoices(ids: list[int]) -> list[dict]:
-    """Knjiži račune. Pred tem ponovno preveri, da so še vedno agentovi osnutki."""
+    """Post invoices. First re-check that they are still the agent's drafts."""
     current = call("account.move", "read", ids=ids,
                    fields=["id", "state", "create_uid", "move_type"])
     bad = [r for r in current
            if r["state"] != "draft" or r["move_type"] != "out_invoice"
            or not r["create_uid"] or r["create_uid"][0] != AGENT_UID]
     if bad or len(current) != len(ids):
-        raise RuntimeError(f"Računi niso več veljavni osnutki agenta: {bad or 'manjkajo zapisi'}")
+        raise RuntimeError(f"Invoices are no longer valid agent drafts: {bad or 'records missing'}")
     call("account.move", "action_post", ids=ids)
     return call("account.move", "read", ids=ids,
                 fields=["id", "name", "state", "amount_total"])

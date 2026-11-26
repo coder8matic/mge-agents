@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS vector;   -- za spomin agentov (F1+)
+CREATE EXTENSION IF NOT EXISTS vector;   -- for agent memory (F1+)
 
 CREATE TABLE runs (
   id           BIGSERIAL PRIMARY KEY,
@@ -16,7 +16,7 @@ CREATE TABLE runs (
 CREATE TABLE approvals (
   id           BIGSERIAL PRIMARY KEY,
   run_id       BIGINT NOT NULL REFERENCES runs(id),
-  action       TEXT NOT NULL,                     -- npr. odoo.post_invoices
+  action       TEXT NOT NULL,                     -- e.g. odoo.post_invoices
   payload      JSONB NOT NULL,                    -- {"invoice_ids": [...]}
   status       TEXT NOT NULL DEFAULT 'pending',   -- pending | approved | rejected | executed | failed
   requested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -25,7 +25,7 @@ CREATE TABLE approvals (
   result       JSONB
 );
 
--- Revizijska sled: samo INSERT (append-only)
+-- Audit trail: INSERT only (append-only)
 CREATE TABLE audit_log (
   id      BIGSERIAL PRIMARY KEY,
   at      TIMESTAMPTZ NOT NULL DEFAULT now(),

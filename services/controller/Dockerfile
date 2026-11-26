@@ -9,7 +9,7 @@ USER agent
 WORKDIR /home/agent
 ENV PATH="/home/agent/.local/bin:${PATH}"
 
-# Claude Code CLI (Agent SDK ga uporablja pod pokrovom)
+# Claude Code CLI (used by the Agent SDK under the hood)
 RUN curl -fsSL https://claude.ai/install.sh | bash
 
 COPY --chown=agent requirements.txt .

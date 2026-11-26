@@ -1,5 +1,5 @@
-"""Zagon enega agenta s Claude Agent SDK.
-F0: teče znotraj controllerja. F1/F2: vsak zagon v svojem efemernem containerju."""
+"""Run a single agent with the Claude Agent SDK.
+F0: runs inside the controller. F1/F2: each run in its own ephemeral container."""
 import datetime as dt
 import os
 from pathlib import Path
@@ -20,7 +20,7 @@ async def run_agent(name: str, run_id: int, extra: str = "") -> dict:
 
     options = ClaudeAgentOptions(
         cwd=str(agent_dir),
-        setting_sources=["project"],          # naloži CLAUDE.md iz mape agenta
+        setting_sources=["project"],          # loads CLAUDE.md from the agent directory
         model=cfg["models"]["execute"],
         max_turns=cfg["limits"]["max_turns"],
         mcp_servers={
@@ -30,16 +30,16 @@ async def run_agent(name: str, run_id: int, extra: str = "") -> dict:
                 "headers": {"Authorization": f"Bearer {os.environ['EXECUTOR_TOKEN']}"},
             }
         },
-        # Agent sme brati svojo mapo in klicati orodja prek Executorja. Nič drugega.
+        # The agent may read its own directory and call tools via Executor. Nothing else.
         allowed_tools=["Read", "Glob", "Grep", "mcp__executor__*"],
         disallowed_tools=["Bash", "Write", "Edit", "NotebookEdit", "WebFetch", "WebSearch"],
     )
 
     today = dt.date.today().isoformat()
-    prompt = (f"Run ID: {run_id}. Današnji datum: {today}.\n\n"
-              f"Naloga: {cfg['task']}\n")
+    prompt = (f"Run ID: {run_id}. Today's date: {today}.\n\n"
+              f"Task: {cfg['task']}\n")
     if extra:
-        prompt += f"\nDodatno navodilo uporabnika: {extra}\n"
+        prompt += f"\nAdditional user instructions: {extra}\n"
 
     result = {"text": "", "cost_usd": None, "is_error": False}
     async for msg in query(prompt=prompt, options=options):

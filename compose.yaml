@@ -19,9 +19,9 @@ services:
   executor:
     image: ghcr.io/rhyssullivan/executor-selfhost:${EXECUTOR_VERSION:-latest}
     ports:
-      - "127.0.0.1:4788:4788"          # web UI samo lokalno
+      - "127.0.0.1:4788:4788"          # web UI on localhost only
     volumes:
-      - executor-data:/data             # SQLite + šifrirni ključi -> BACKUP!
+      - executor-data:/data             # SQLite + encryption keys -> BACK UP!
     environment:
       EXECUTOR_WEB_BASE_URL: http://localhost:4788
     restart: unless-stopped
@@ -31,7 +31,7 @@ services:
     environment:
       ODOO_URL: ${ODOO_URL}
       ODOO_DB: ${ODOO_DB}
-      ODOO_AGENT_API_KEY: ${ODOO_AGENT_API_KEY}   # samo agentov ključ
+      ODOO_AGENT_API_KEY: ${ODOO_AGENT_API_KEY}   # agent key only
     expose:
       - "8000"
     restart: unless-stopped
@@ -46,7 +46,7 @@ services:
     environment:
       TZ: Europe/Ljubljana
       DATABASE_URL: postgresql://mge:${POSTGRES_PASSWORD}@postgres:5432/mge
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN}   # subscription, not an API key
       EXECUTOR_MCP_URL: http://executor:4788/mcp
       EXECUTOR_TOKEN: ${EXECUTOR_TOKEN}
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
@@ -55,7 +55,7 @@ services:
       DISCORD_APPROVER_IDS: ${DISCORD_APPROVER_IDS}
       ODOO_URL: ${ODOO_URL}
       ODOO_DB: ${ODOO_DB}
-      ODOO_APPROVER_API_KEY: ${ODOO_APPROVER_API_KEY}  # samo odobritveni ključ
+      ODOO_APPROVER_API_KEY: ${ODOO_APPROVER_API_KEY}  # approver key only
       ODOO_AGENT_USER_ID: ${ODOO_AGENT_USER_ID}
     volumes:
       - ./agents:/agents:ro

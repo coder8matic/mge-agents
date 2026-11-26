@@ -1,8 +1,8 @@
-"""Odoo MCP strežnik za agente (Odoo 19, JSON-2 API).
+"""Odoo MCP server for agents (Odoo 19, JSON-2 API).
 
-Namerno izpostavi SAMO branje in ustvarjanje OSNUTKOV računov.
-Ni orodja za knjiženje (action_post), brisanje ali spremembo stank/pravic.
-Knjiženje izvede controller šele po odobritvi v Discordu, z drugim ključem.
+Deliberately exposes ONLY reading and creating DRAFT invoices.
+There is no tool for posting (action_post), deleting, or changing partners/permissions.
+Posting is done by the controller only after approval in Discord, with a different key.
 """
 import os
 
@@ -41,7 +41,7 @@ def call(model: str, method: str, **params):
 
 @mcp.tool()
 def find_partners(name: str, limit: int = 10) -> list[dict]:
-    """Poišči stranke (res.partner) po delu imena."""
+    """Find customers (res.partner) by partial name."""
     return call("res.partner", "search_read",
                 domain=[["name", "ilike", name]],
                 fields=["id", "name", "vat", "email", "is_company"], limit=limit)
@@ -49,7 +49,7 @@ def find_partners(name: str, limit: int = 10) -> list[dict]:
 
 @mcp.tool()
 def find_products(name: str, limit: int = 10) -> list[dict]:
-    """Poišči prodajne izdelke/storitve (product.product) po delu imena."""
+    """Find sellable products/services (product.product) by partial name."""
     return call("product.product", "search_read",
                 domain=[["name", "ilike", name], ["sale_ok", "=", True]],
                 fields=["id", "name", "default_code", "list_price", "taxes_id"],
@@ -60,8 +60,8 @@ def find_products(name: str, limit: int = 10) -> list[dict]:
 def list_invoices(partner_id: int | None = None, date_from: str | None = None,
                   date_to: str | None = None, state: str | None = None,
                   origin_contains: str | None = None, limit: int = 50) -> list[dict]:
-    """Seznam izhodnih računov. Datumi v obliki YYYY-MM-DD.
-    state: draft | posted | cancel. origin_contains: iskanje po 'Izvorni dokument'."""
+    """List customer invoices. Dates in YYYY-MM-DD format.
+    state: draft | posted | cancel. origin_contains: search by 'Source Document'."""
     domain: list = [["move_type", "=", "out_invoice"]]
     if partner_id:
         domain.append(["partner_id", "=", partner_id])
@@ -79,7 +79,7 @@ def list_invoices(partner_id: int | None = None, date_from: str | None = None,
 
 @mcp.tool()
 def get_invoice_lines(invoice_id: int) -> list[dict]:
-    """Postavke (izdelki) posameznega računa."""
+    """Line items (products) of a single invoice."""
     return call("account.move.line", "search_read",
                 domain=[["move_id", "=", invoice_id], ["display_type", "=", "product"]],
                 fields=["product_id", "name", "quantity", "price_unit",
@@ -89,11 +89,11 @@ def get_invoice_lines(invoice_id: int) -> list[dict]:
 @mcp.tool()
 def create_draft_invoice(partner_id: int, invoice_date: str, lines: list[dict],
                          origin: str) -> dict:
-    """Ustvari OSNUTEK (draft) izhodnega računa. Knjiženja ni.
-    lines: [{"product_id": int, "quantity": float, "price_unit": float, "name": str (opcijsko)}]
-    origin: oznaka za idempotenco, npr. "AGENT 2026-10" (zapiše se v 'Izvorni dokument')."""
+    """Create a DRAFT customer invoice. Does not post.
+    lines: [{"product_id": int, "quantity": float, "price_unit": float, "name": str (optional)}]
+    origin: idempotency tag, e.g. "AGENT 2026-10" (stored in 'Source Document')."""
     if not lines:
-        raise ValueError("Račun mora imeti vsaj eno postavko.")
+        raise ValueError("An invoice must have at least one line item.")
     line_cmds = []
     for line in lines:
         vals = {

@@ -1,6 +1,7 @@
-# Mesečno fakturiranje: vir resnice za agenta.
-# Imena strank in izdelkov morajo biti TOČNO taka kot v Odoo.
-# {period} agent zamenja z mesecem in letom (npr. "oktober 2026").
+# Monthly invoicing: source of truth for the agent.
+# Customer and product names must match Odoo EXACTLY.
+# The agent replaces {period} with the month and year (e.g. "oktober 2026").
+# Product names and descriptions are customer-facing invoice text, so they stay in Slovenian.
 
 customers:
   - partner: "Primer d.o.o."
